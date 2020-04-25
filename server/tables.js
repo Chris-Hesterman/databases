@@ -55,6 +55,11 @@ s.query('SET FOREIGN_KEY_CHECKS = 0').then(() => {
         );
       })
       .then(() => {
+        s.query(
+          `INSERT INTO rooms(id, roomname, createdAt, updatedAt) VALUES(null, 'main', NOW(), NOW())`
+        );
+      })
+      .then(() => {
         s.query('SET FOREIGN_KEY_CHECKS = 1');
       });
   });

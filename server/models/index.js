@@ -22,114 +22,65 @@ var checkRoomExists = `SELECT CASE WHEN EXISTS (SELECT roomname FROM rooms WHERE
   ELSE 0
   END`;
 
-var postUser = `INSERT INTO users (id, username, rooms_id_currentRoom) VALUES (null, ?, (SELECT id FROM rooms WHERE roomname = 'main'))`;
+var postUser = `INSERT INTO users (id, username, rooms_id_currentRoom, createdAt, updatedAt) VALUES (null, ?, (SELECT id FROM rooms WHERE roomname = 'main'), NOW(), NOW())`;
 
-var postRoom = `INSERT INTO rooms (id, roomname) VALUES (null, ?)`;
+var postRoom = `INSERT INTO rooms (id, roomname, createdAt, updatedAt) VALUES (null, ?, NOW(), NOW())`;
 
 module.exports = {
   messages: {
     get: function () {
-      return new Promise((resolve, reject) => {
-        db.query(queryAllMessages, (err, results) => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve(results);
-        });
-      });
+      return db.query(queryAllMessages);
     }, // a function which produces all the messages
     post: function (postData) {
       var parameters = [postData.message, postData.username, postData.roomname];
-      return new Promise((resolve, reject) => {
-        db.query(postMessage, parameters, (err, results) => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve(results);
-        });
-      });
+      return db.query(postMessage, { replacements: parameters });
     } // a function which can be used to insert a message into the database
   },
 
   users: {
     // Ditto as above.
     get: function () {
-      return new Promise((resolve, reject) => {
-        db.query(queryAllUsers, (err, results) => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve(results);
-        });
-      });
+      return db.query(queryAllUsers);
     },
     post: function (usernameData) {
       var parameters = [usernameData.username];
-      return new Promise((resolve, reject) => {
-        db.query(checkUserExists, parameters, (err, results, fields) => {
+      return db
+        .query(checkUserExists, { replacements: parameters })
+        .then((results) => {
           var boolean;
           for (var key in results[0]) {
             boolean = results[0][key];
           }
-          if (err) {
-            return reject(err);
+          if (!boolean) {
+            return db.query(postUser, { replacements: parameters });
           } else {
-            if (!boolean) {
-              db.query(postUser, parameters, (err, results) => {
-                if (err) {
-                  return reject(err);
-                }
-                resolve('User added');
-              });
-            } else {
-              resolve('User already exists');
-            }
+            return 'User already exists!';
           }
         });
-      });
     }
   },
 
   rooms: {
     // Ditto as above.
     get: function () {
-      return new Promise((resolve, reject) => {
-        db.query(queryMessagesInRoom, (err, results) => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve(results);
-        });
-      });
+      return db.query(queryMessagesInRoom);
     },
     post: function (roomnameData) {
       var parameters = [roomnameData.roomname];
-      return new Promise((resolve, reject) => {
-        db.query(checkRoomExists, parameters, (err, results, fields) => {
+
+      db.query(checkRoomExists, { replacements: parameters }).then(
+        (results) => {
           var boolean;
           for (var key in results[0]) {
             boolean = results[0][key];
           }
-          if (err) {
-            return reject(err);
+          if (!boolean) {
+            return db.query(postRoom, { replacements: parameters });
           } else {
-            if (!boolean) {
-              db.query(postRoom, parameters, (err, results) => {
-                if (err) {
-                  return reject(err);
-                }
-                resolve('Room added');
-              });
-            } else {
-              resolve('Room already exists');
-            }
+            return 'Room already exists';
           }
-        });
-      });
+        }
+      );
     }
   }
 };

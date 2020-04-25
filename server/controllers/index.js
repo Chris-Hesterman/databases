@@ -6,6 +6,7 @@ module.exports = {
       models.messages
         .get()
         .then((data) => {
+          console.log(data);
           res.send(data);
         })
         .catch((err) => {
@@ -39,6 +40,7 @@ module.exports = {
         });
     },
     post: function (req, res) {
+      console.log(req);
       models.users
         .post(req.body)
         .then((data) => {
