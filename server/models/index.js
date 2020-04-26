@@ -29,7 +29,7 @@ var postRoom = `INSERT INTO rooms (id, roomname, createdAt, updatedAt) VALUES (n
 module.exports = {
   messages: {
     get: function () {
-      return db.query(queryAllMessages);
+      return db.models.Messages.findAll();
     }, // a function which produces all the messages
     post: function (postData) {
       var parameters = [postData.message, postData.username, postData.roomname];
@@ -40,7 +40,7 @@ module.exports = {
   users: {
     // Ditto as above.
     get: function () {
-      return db.query(queryAllUsers);
+      return db.models.Users.findAll();
     },
     post: function (usernameData) {
       var parameters = [usernameData.username];
@@ -48,8 +48,8 @@ module.exports = {
         .query(checkUserExists, { replacements: parameters })
         .then((results) => {
           var boolean;
-          for (var key in results[0]) {
-            boolean = results[0][key];
+          for (var key in results[0][0]) {
+            boolean = results[0][0][key];
           }
           if (!boolean) {
             return db.query(postUser, { replacements: parameters });
@@ -63,7 +63,7 @@ module.exports = {
   rooms: {
     // Ditto as above.
     get: function () {
-      return db.query(queryMessagesInRoom);
+      return db.models.Rooms.findAll();
     },
     post: function (roomnameData) {
       var parameters = [roomnameData.roomname];
@@ -71,8 +71,8 @@ module.exports = {
       db.query(checkRoomExists, { replacements: parameters }).then(
         (results) => {
           var boolean;
-          for (var key in results[0]) {
-            boolean = results[0][key];
+          for (var key in results[0][0]) {
+            boolean = results[0][0][key];
           }
           if (!boolean) {
             return db.query(postRoom, { replacements: parameters });
