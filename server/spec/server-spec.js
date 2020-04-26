@@ -117,7 +117,7 @@ describe('Persistent Node Chat Server', function () {
     );
   });
 
-  it('Should output all messages from the DB', function (done) {
+  it('Should return messages in reverse order they were added', function (done) {
     // Let's insert a message into the db
     var queryString = `INSERT INTO messages (id, message, users_id_user, rooms_id_room, timestamp) VALUES(null, ?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM rooms WHERE roomname = ?), NOW())`;
     var queryArgs = [
@@ -149,5 +149,108 @@ describe('Persistent Node Chat Server', function () {
         done();
       });
     });
+  });
+
+  it('Should output all messages from the DB', function (done) {
+    this.timeout(4000);
+    // Let's insert a message into the db
+    var queryString = `INSERT INTO messages (id, message, users_id_user, rooms_id_room, timestamp) VALUES(null, ?, (SELECT id FROM users WHERE username = ?), (SELECT id FROM rooms WHERE roomname = ?), NOW())`;
+    var queryArgs = [
+      "In mercy's name, three days is all I need.",
+      'Valjean',
+      'main'
+    ];
+
+    var queryArgs2 = [
+      "I didn't know true evil until I met Sequelize.",
+      'Valjean',
+      'main'
+    ];
+
+    var queryArgs3 = ['Yes, Sequelize is not fun', 'Valjean', 'main'];
+    // TODO - The exact query string and query args to use
+    // here depend on the schema you design, so I'll leave
+    // them up to you. */
+
+    dbConnection.query(queryString, queryArgs, function (err) {
+      if (err) {
+        throw err;
+      }
+      setTimeout(() => {
+        dbConnection.query(queryString, queryArgs2, function (err) {
+          if (err) {
+            throw err;
+          }
+          setTimeout(() => {
+            dbConnection.query(queryString, queryArgs3, function (err) {
+              if (err) {
+                throw err;
+              }
+              // Now query the Node chat server and see if it returns
+              // the message we just inserted:
+              request.get('http://127.0.0.1:3000/classes/messages', function (
+                error,
+                response,
+                body
+              ) {
+                var messageLog = JSON.parse(body);
+                expect(messageLog[2].message).to.equal(
+                  "In mercy's name, three days is all I need."
+                );
+                expect(messageLog[1].message).to.equal(
+                  "I didn't know true evil until I met Sequelize."
+                );
+                expect(messageLog[0].message).to.equal(
+                  'Yes, Sequelize is not fun'
+                );
+                expect(messageLog[0].roomname).to.equal('main');
+                done();
+              });
+            });
+          }, 1100);
+        });
+      }, 1100);
+    });
+  });
+
+  it('Should get all users', function (done) {
+    request(
+      {
+        method: 'POST',
+        uri: 'http://127.0.0.1:3000/classes/users',
+        json: { username: 'Chris' }
+      },
+      function (err, results) {
+        request(
+          {
+            method: 'POST',
+            uri: 'http://127.0.0.1:3000/classes/users',
+            json: { username: 'Nick' }
+          },
+          function (err, results) {
+            if (err) {
+              console.log(err);
+            } else {
+              request.get('http://127.0.0.1:3000/classes/users', function (
+                err,
+                results
+              ) {
+                if (err) {
+                  console.log(err);
+                } else {
+                  results = JSON.parse(results.body);
+                  expect(results[0].username).to.equal('Kermit');
+                  expect(results[1].username).to.equal('Valjean');
+                  expect(results[2].username).to.equal('Chris');
+                  expect(results[3].username).to.equal('Nick');
+                }
+
+                done();
+              });
+            }
+          }
+        );
+      }
+    );
   });
 });

@@ -30,7 +30,7 @@ var Friends = s.define('friends', {
 });
 
 s.query('SET FOREIGN_KEY_CHECKS = 0').then(() => {
-  s.sync({ force: true }).then(() => {
+  s.sync().then(() => {
     s.query(
       'ALTER TABLE users ADD FOREIGN KEY(rooms_id_currentRoom) REFERENCES rooms (id);'
     )
