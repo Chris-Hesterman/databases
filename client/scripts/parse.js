@@ -25,7 +25,7 @@ var Parse = {
     $.ajax({
       url: Parse.server + 'messages',
       type: 'GET',
-      // data: { order: '-createdAt' },
+      data: { roomname: App.roomname },
       contentType: 'application/json',
       success: successCB,
       error:

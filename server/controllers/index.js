@@ -5,9 +5,13 @@ module.exports = {
     get: function (req, res) {
       models.messages
         .get()
-        .then((data) => {
-          console.log(data);
-          res.send(data);
+        .then(function (data) {
+          console.log(arguments);
+          var result = [];
+          data.map((message) => {
+            result.push(message[0]);
+          });
+          res.send(result);
         })
         .catch((err) => {
           console.log('Error: ', err);
