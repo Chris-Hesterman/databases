@@ -20,9 +20,7 @@ var MessagesView = {
   renderMessage: function (messages) {
     let html = '';
 
-    if (App.roomname !== 'main') {
-      messages = this.filterMessages(messages);
-    }
+    messages = MessagesView.filterMessages(messages);
 
     for (let post of messages) {
       html += MessageView.render({ message: post });

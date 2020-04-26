@@ -1,12 +1,12 @@
 let s = require('./db');
 let S = require('sequelize');
 
-var Users = s.define('users', {
+var Users = s.define('Users', {
   username: S.STRING(25),
   rooms_id_currentRoom: S.INTEGER
 });
 
-var Rooms = s.define('rooms', {
+var Rooms = s.define('Rooms', {
   roomname: S.STRING(25)
 });
 

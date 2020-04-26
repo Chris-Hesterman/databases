@@ -6,12 +6,7 @@ module.exports = {
       models.messages
         .get()
         .then(function (data) {
-          console.log(arguments);
-          var result = [];
-          data.map((message) => {
-            result.push(message[0]);
-          });
-          res.send(result);
+          res.send(data);
         })
         .catch((err) => {
           console.log('Error: ', err);
@@ -37,18 +32,17 @@ module.exports = {
       models.users
         .get()
         .then((data) => {
-          res.send(data);
+          res.status(200).send(data);
         })
         .catch((err) => {
           res.sendStatus(404);
         });
     },
     post: function (req, res) {
-      console.log(req);
       models.users
         .post(req.body)
         .then((data) => {
-          res.send(data);
+          res.status(200).send(data);
         })
         .catch((err) => {
           res.status(500).send(err);
@@ -62,19 +56,20 @@ module.exports = {
       models.users
         .get()
         .then((data) => {
-          res.send(data);
+          res.status(200).send(data);
         })
         .catch((err) => {
-          res.sendStatus(404);
+          res.status(500).send(err);
         });
     },
     post: function (req, res) {
       models.rooms
         .post(req.body)
         .then((data) => {
-          res.send(data);
+          res.sendStatus(200);
         })
         .catch((err) => {
+          console.log('room post error: ', err);
           res.status(500).send(err);
         });
     }

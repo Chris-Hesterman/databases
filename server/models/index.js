@@ -26,30 +26,40 @@ var postRoom = `INSERT INTO rooms (id, roomname, createdAt, updatedAt) VALUES (n
 module.exports = {
   messages: {
     get: function (roomData) {
-      return db.query(queryAllMessages, { raw: true });
+      return db.query(queryAllMessages, { type: db.QueryTypes.SELECT });
     }, // a function which produces all the messages
     post: function (postData) {
       var parameters = [postData.message, postData.username, postData.roomname];
-      return db.query(postMessage, { replacements: parameters });
+      return db.query(postMessage, {
+        replacements: parameters
+      });
     } // a function which can be used to insert a message into the database
   },
 
   users: {
     // Ditto as above.
     get: function () {
-      return db.models.Users.findAll();
+      return db.query(queryAllUsers, {
+        type: db.QueryTypes.SELECT
+      });
     },
     post: function (usernameData) {
       var parameters = [usernameData.username];
       return db
-        .query(checkUserExists, { replacements: parameters })
+        .query(checkUserExists, {
+          replacements: parameters,
+          type: db.QueryTypes.SELECT
+        })
         .then((results) => {
           var boolean;
           for (var key in results[0][0]) {
             boolean = results[0][0][key];
           }
           if (!boolean) {
-            return db.query(postUser, { replacements: parameters });
+            return db.query(postUser, {
+              replacements: parameters
+              // type: db.QueryTypes.INSERT
+            });
           } else {
             return 'User already exists!';
           }
@@ -60,24 +70,32 @@ module.exports = {
   rooms: {
     // Ditto as above.
     get: function () {
-      return db.models.Rooms.findAll();
+      return db.query('SELECT roomname FROM rooms;', {
+        type: db.QueryTypes.SELECT
+      });
     },
     post: function (roomnameData) {
       var parameters = [roomnameData.roomname];
 
-      db.query(checkRoomExists, { replacements: parameters }).then(
-        (results) => {
+      return db
+        .query(checkRoomExists, {
+          replacements: parameters,
+          type: db.QueryTypes.SELECT
+        })
+        .then((results) => {
           var boolean;
-          for (var key in results[0][0]) {
-            boolean = results[0][0][key];
+          for (var key in results[0]) {
+            boolean = results[0][key];
           }
           if (!boolean) {
-            return db.query(postRoom, { replacements: parameters });
+            return db.query(postRoom, {
+              replacements: parameters,
+              type: db.QueryTypes.INSERT
+            });
           } else {
             return 'Room already exists';
           }
-        }
-      );
+        });
     }
   }
 };
